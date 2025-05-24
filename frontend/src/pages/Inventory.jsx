@@ -6,6 +6,8 @@ import { DataGrid } from '@mui/x-data-grid';
 import api from '../services/api';
 
 const Inventory = () => {
+    const [transactionForm, setTransactionForm] = useState({ type: '', quantity: '', note: '', productId: null });
+    const [transactionOpen, setTransactionOpen] = useState(false);
     const [products, setProducts] = useState([]);
     const [form, setForm] = useState({
         name: '', quantity: '', price: '', description: '', category: '', subtype: ''
@@ -64,6 +66,22 @@ const Inventory = () => {
         setFilterCategory('');
     };
 
+    const openTransaction = (type, productId) => {
+        setTransactionForm({ type, quantity: '', note: '', productId });
+        setTransactionOpen(true);
+    };
+
+    const handleTransactionSubmit = async () => {
+        try {
+            await api.post('/transactions', transactionForm);
+            fetchProducts(); // refresh inventory
+            setTransactionOpen(false);
+        } catch (err) {
+            console.error('Transaction failed', err);
+        }
+    };
+
+
     const columns = [
         { field: 'id', headerName: 'ID', width: 70 },
         { field: 'name', headerName: 'Name', flex: 1 },
@@ -75,11 +93,13 @@ const Inventory = () => {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 160,
+            width: 280,
             renderCell: (params) => (
                 <Box>
-                    <Button onClick={() => handleOpen(params.row)}>Edit</Button>
-                    <Button color="error" onClick={() => handleDelete(params.row.id)}>Delete</Button>
+                    <Button size="small" onClick={() => handleOpen(params.row)}>Edit</Button>
+                    <Button size="small" color="error" onClick={() => handleDelete(params.row.id)}>Delete</Button>
+                    <Button size="small" onClick={() => openTransaction('sale', params.row.id)}>Sell</Button>
+                    <Button size="small" onClick={() => openTransaction('restock', params.row.id)}>Restock</Button>
                 </Box>
             ),
         },
@@ -129,6 +149,33 @@ const Inventory = () => {
                     <Button onClick={handleSubmit} variant="contained">{editingId ? 'Update' : 'Create'}</Button>
                 </DialogActions>
             </Dialog>
+            <Dialog open={transactionOpen} onClose={() => setTransactionOpen(false)}>
+                <DialogTitle>{transactionForm.type === 'sale' ? 'Sell Product' : 'Restock Product'}</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        margin="dense"
+                        label="Quantity"
+                        name="quantity"
+                        type="number"
+                        value={transactionForm.quantity}
+                        onChange={(e) => setTransactionForm({ ...transactionForm, quantity: e.target.value })}
+                    />
+                    <TextField
+                        fullWidth
+                        margin="dense"
+                        label="Note (optional)"
+                        name="note"
+                        value={transactionForm.note}
+                        onChange={(e) => setTransactionForm({ ...transactionForm, note: e.target.value })}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setTransactionOpen(false)}>Cancel</Button>
+                    <Button onClick={handleTransactionSubmit} variant="contained">Submit</Button>
+                </DialogActions>
+            </Dialog>
+
         </Container>
     );
 };

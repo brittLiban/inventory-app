@@ -7,6 +7,9 @@ import connectDB from './config/sequelize.js';
 import authRoutes from './routes/auth.js';
 import cors from 'cors';
 import productRoutes from './routes/product.js';
+import transactionRoutes from './routes/transaction.js';
+
+
 
 dotenv.config();
 
@@ -32,6 +35,7 @@ app.use(cors({
   credentials: true // allow cookies to be sent
 }));
 
+app.use('/api/transactions', transactionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 

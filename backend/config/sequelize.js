@@ -1,5 +1,6 @@
 // config/sequelize.js
 import sequelize from './db.js';
+import Transaction from '../models/Transaction.js';
 import '../models/User.js';
 
 const connectDB = async () => {
